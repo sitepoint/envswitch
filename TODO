@@ -1,0 +1,3 @@
+* Support importing credentials from the pass password manager.
+* Eliminate all the "echo" statements.
+* Identify conflicting options. eg envswitch -ih

@@ -1,0 +1,100 @@
+#!/bin/bash
+#
+# 2015 Copyright SitePoint Pty Ltd.
+# Author: Adam Bolte <adam.bolte@sitepoint.com>
+
+
+declare -r config_dir="${HOME}/.config/envswitch"
+declare requested_option
+
+shopt -s nullglob
+
+
+function print_help()
+{
+    echo "Usage: $(basename ${0}) OPTION"
+    echo
+    echo "  -i      initialize (for use with eval)"
+    echo "  -l      list available environments"
+    echo "  -h      show this help message"
+}
+
+
+function init()
+{
+    echo "envreset()"
+    echo "{"
+    echo "    if [ -n \"\${ENVSWITCH_PROFILE}\" ]"
+    echo "    then"
+    echo "        for line in \$(grep -v '^#' \"${config_dir}/\${ENVSWITCH_PROFILE}.conf\")"
+    echo "        do"
+    echo "            unset \"\${line%=*}\""
+    echo "        done"
+    echo "        unset ENVSWITCH_PROFILE"
+    echo "        export PS1=\"\${ENVSWITCH_OLDPS1}\""
+    echo "    fi"
+    echo "}"
+
+    for env_file in ${config_dir}/*.conf
+    do
+        env_file_base="$(basename ${env_file%.conf})"
+        echo "${env_file_base}()"
+        echo "{"
+        echo "    if [ -n \"\${ENVSWITCH_PROFILE}\" ]"
+        echo "    then"
+        echo "        envreset"
+        echo "    fi"
+        echo "    export ENVSWITCH_PROFILE='${env_file_base}'"
+        echo "    for line in \$(grep -v '^#' ${env_file})"
+        echo "    do"
+        echo "        eval export \${line}"
+        echo "    done"
+        echo "    export ENVSWITCH_OLDPS1=\"\${PS1}\""
+        echo "    export PS1=\"(${env_file_base}) \${PS1}\""
+        echo "}"
+    done
+}
+
+function list_environments()
+{
+    for env_file in ${config_dir}/*.conf
+    do
+        echo "$(basename ${env_file%.conf})"
+    done
+}
+
+
+if [ ! -d "${config_dir}" ]
+then
+    mkdir -m 0700 "${config_dir}"
+fi
+
+if [ ${#} -eq 0 ]
+then
+    echo "${0}: required option missing"
+    print_help
+    exit 1
+fi
+
+while getopts "hil" option
+do
+    case ${option} in
+        i )
+            init
+            ;;
+        h )
+            print_help
+            exit 0
+            ;;
+        l )
+            list_environments
+            exit 0
+            ;;
+        * )
+            print_help
+            exit 1
+            ;;
+    esac
+done
+
+shift $((${OPTIND} - 1))
