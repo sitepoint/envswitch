@@ -66,6 +66,7 @@ function list_environments()
 
 if [ ! -d "${config_dir}" ]
 then
+    umask 0077
     mkdir -m 0700 "${config_dir}"
 fi
 
