@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # 2015 Copyright SitePoint Pty Ltd.
 # Author: Adam Bolte <adam.bolte@sitepoint.com>
