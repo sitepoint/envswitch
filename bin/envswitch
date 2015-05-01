@@ -14,6 +14,7 @@ function print_help()
 	Usage: $(basename ${0}) OPTION
 
 	-i      initialize (for use with eval)
+	-I      same as -i, but don't alter \$PS1
 	-l      list available environments
 	-s      show loaded environment variables
 	-h      show this help message
@@ -34,8 +35,21 @@ function init()
 	            unset "\${line%=*}"
 	        done
 	        unset ENVSWITCH_PROFILE
-	        export PS1="\${ENVSWITCH_OLDPS1}"
+	        if [ -n "${ENVSWITCH_OLDPS1}" ]
+	        then
+	            export PS1="\${ENVSWITCH_OLDPS1}"
+	        fi
 	    fi
+	}
+	
+	envrunning()
+	{
+		if [ -n "\${ENVSWITCH_PROFILE}" ]
+		then
+			echo "\${ENVSWITCH_PROFILE}"
+		else
+			echo "No environment loaded." 1>&2
+		fi
 	}
 	EOF
 
@@ -55,10 +69,15 @@ function init()
 		    do
 		        eval export \${line}
 		    done
-		    export ENVSWITCH_OLDPS1="\${PS1}"
-		    export PS1="(${env_file_base}) \${PS1}"
-		}
 		EOF
+		if [ "${1}" = "set_prompt" ]
+		then
+			cat <<- EOF
+			    export ENVSWITCH_OLDPS1="\${PS1}"
+			    export PS1="(${env_file_base}) \${PS1}"
+			EOF
+		fi
+		echo "}"
 	done
 }
 
@@ -83,6 +102,7 @@ function show_environment()
 
 declare -i help_opt=0
 declare -i init_opt=0
+declare -i init_opt_nops1=0
 declare -i env_opt=0
 declare -i show_env=0
 declare -i score=0
@@ -93,7 +113,7 @@ then
 	mkdir -m 0700 "${config_dir}"
 fi
 
-while getopts "hils" option
+while getopts "hiIls" option
 do
 	case ${option} in
 		h )
@@ -101,6 +121,9 @@ do
 			;;
 		i )
 			init_opt=1
+			;;
+		I )
+			init_opt_nops1=1
 			;;
 		l )
 			env_opt=1
@@ -117,7 +140,8 @@ done
 
 shift $((${OPTIND} - 1))
 
-score=$((${help_opt} + ${init_opt} + ${env_opt} + ${show_env}))
+score=$((${help_opt} + ${init_opt} + ${env_opt} + ${show_env} + \
+	${init_opt_nops1}))
 if [ ${score} -eq 0 ]
 then
 	echo "${0}: required option missing"
@@ -133,6 +157,9 @@ else
 	then
 		print_help
 	elif [ "${init_opt}" -eq 1 ]
+	then
+		init set_prompt
+	elif [ "${init_opt_nops1}" -eq 1 ]
 	then
 		init
 	elif [ "${env_opt}" -eq 1 ]
