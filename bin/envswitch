@@ -15,6 +15,7 @@ function print_help()
 
 	-i      initialize (for use with eval)
 	-l      list available environments
+	-s      show loaded environment variables
 	-h      show this help message
 	EOF
 }
@@ -69,10 +70,21 @@ function list_environments()
 	done
 }
 
+function show_environment()
+{
+	if [ -n "${ENVSWITCH_PROFILE}" ]
+	then
+		cat "${config_dir}/${ENVSWITCH_PROFILE}.conf"
+	else
+		echo "No environment loaded."
+		exit 1
+	fi
+}
 
 declare -i help_opt=0
 declare -i init_opt=0
 declare -i env_opt=0
+declare -i show_env=0
 declare -i score=0
 
 if [ ! -d "${config_dir}" ]
@@ -81,7 +93,7 @@ then
 	mkdir -m 0700 "${config_dir}"
 fi
 
-while getopts "hil" option
+while getopts "hils" option
 do
 	case ${option} in
 		h )
@@ -93,6 +105,9 @@ do
 		l )
 			env_opt=1
 			;;
+		s )
+			show_env=1
+			;;
 		* )
 			print_help
 			exit 1
@@ -102,7 +117,7 @@ done
 
 shift $((${OPTIND} - 1))
 
-score=$((${help_opt} + ${init_opt} + ${env_opt}))
+score=$((${help_opt} + ${init_opt} + ${env_opt} + ${show_env}))
 if [ ${score} -eq 0 ]
 then
 	echo "${0}: required option missing"
@@ -123,5 +138,8 @@ else
 	elif [ "${env_opt}" -eq 1 ]
 	then
 		list_environments
+	elif [ "${show_env}" -eq 1 ]
+	then
+		show_environment
 	fi
 fi
