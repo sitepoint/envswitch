@@ -35,9 +35,10 @@ function init()
 	            unset "\${line%=*}"
 	        done
 	        unset ENVSWITCH_PROFILE
-	        if [ -n "${ENVSWITCH_OLDPS1}" ]
+	        if [ -n "\${ENVSWITCH_OLDPS1}" ]
 	        then
 	            export PS1="\${ENVSWITCH_OLDPS1}"
+	            unset ENVSWITCH_OLDPS1
 	        fi
 	    fi
 	}
