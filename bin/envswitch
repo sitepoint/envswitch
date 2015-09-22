@@ -21,6 +21,18 @@ declare -r config_dir="${HOME}/.config/envswitch"
 shopt -s nullglob
 
 
+function export_environment()
+{
+	if [ -n "${ENVSWITCH_PROFILE}" ]
+	then
+		cat "${config_dir}/${ENVSWITCH_PROFILE}.conf" | \
+			sed -e 's/^\([^#]\+\)/export \1/g'
+	else
+		echo "No environment loaded."
+		exit 1
+	fi
+}
+
 function print_help()
 {
 	cat <<- EOF
@@ -30,10 +42,10 @@ function print_help()
 	-I      same as -i, but don't alter \$PS1
 	-l      list available environments
 	-s      show loaded environment variables
+	-e      show loaded environment variables (export mode)
 	-h      show this help message
 	EOF
 }
-
 
 function init()
 {
@@ -114,6 +126,7 @@ function show_environment()
 	fi
 }
 
+declare -i export_opt=0
 declare -i help_opt=0
 declare -i init_opt=0
 declare -i init_opt_nops1=0
@@ -127,9 +140,12 @@ then
 	mkdir -m 0700 "${config_dir}"
 fi
 
-while getopts "hiIls" option
+while getopts "ehiIls" option
 do
 	case ${option} in
+		e )
+			export_opt=1
+			;;
 		h )
 			help_opt=1
 			;;
@@ -154,8 +170,8 @@ done
 
 shift $((${OPTIND} - 1))
 
-score=$((${help_opt} + ${init_opt} + ${env_opt} + ${show_env} + \
-	${init_opt_nops1}))
+score=$((${export_opt} + ${help_opt} + ${init_opt} + ${env_opt} + \
+	${show_env} + ${init_opt_nops1}))
 if [ ${score} -eq 0 ]
 then
 	echo "${0}: required option missing"
@@ -167,7 +183,10 @@ then
 	print_help
 	exit 1
 else
-	if [ "${help_opt}" -eq 1 ]
+	if [ "${export_opt}" -eq 1 ]
+	then
+		export_environment
+	elif [ "${help_opt}" -eq 1 ]
 	then
 		print_help
 	elif [ "${init_opt}" -eq 1 ]
