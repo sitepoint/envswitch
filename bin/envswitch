@@ -26,8 +26,8 @@ function export_environment()
 {
 	if [ -n "${ENVSWITCH_PROFILE}" ]
 	then
-		cat "${config_dir}/${ENVSWITCH_PROFILE}.conf" | \
-			sed -e 's/^\([^#]\+\)/export \1/g'
+		sed -e 's/^\([^#]\+\)/export \1/g' \
+			"${config_dir}/${ENVSWITCH_PROFILE}.conf"
 	else
 		echo "No environment loaded."
 		exit 1
@@ -37,7 +37,7 @@ function export_environment()
 function print_help()
 {
 	cat <<- EOF
-	Usage: $(basename ${0}) OPTION
+	Usage: $(basename "${0}") OPTION
 
 	-i      initialize (for use with eval)
 	-I      same as -i, but don't alter \$PS1
@@ -80,9 +80,9 @@ function init()
 	}
 	EOF
 
-	for env_file in ${config_dir}/*.conf
+	for env_file in "${config_dir}"/*.conf
 	do
-		env_file_base="$(basename ${env_file%.conf})"
+		env_file_base="$(basename "${env_file%.conf}")"
 		cat <<- EOF
 		${env_file_base}()
 		{
@@ -110,9 +110,9 @@ function init()
 
 function list_environments()
 {
-	for env_file in ${config_dir}/*.conf
+	for env_file in "${config_dir}"/*.conf
 	do
-		echo "$(basename ${env_file%.conf})"
+		basename "${env_file%.conf}"
 	done
 }
 
@@ -169,10 +169,10 @@ do
 	esac
 done
 
-shift $((${OPTIND} - 1))
+shift $(( OPTIND - 1))
 
-score=$((${export_opt} + ${help_opt} + ${init_opt} + ${env_opt} + \
-	${show_env} + ${init_opt_nops1}))
+score=$(( export_opt + help_opt + init_opt + env_opt + \
+	show_env + init_opt_nops1 ))
 if [ ${score} -eq 0 ]
 then
 	echo "${0}: required option missing"
