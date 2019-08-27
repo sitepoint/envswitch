@@ -23,6 +23,20 @@ Setup:
 
   eval "$(envswitch -i)"
 
+Profile configuration:
+
+  Upon first execution of envswitch, the directory
+  ${HOME}/.config/envswitch will be created. Install environment
+  variables into a file under this directory with a .conf extension. eg.
+
+  somevar="test1"
+  anothervar="${somevar}"
+  numbervar=123
+
+  Note the name of the configuration file (minus the .conf extension)
+  should not match an existing existing shell function. If in doubt,
+  check the output of `declare -F`.
+
 Usage:
   envswitch -l
 
@@ -33,13 +47,3 @@ Usage:
   envreset
 
   Clears all environment variables from the shell.
-
-Profile configuration:
-
-  Upon first execution of envswitch, the directory
-  ${HOME}/.config/envswitch will be created. Install environment
-  variables into a file under this directory with a .conf extension. eg.
-
-  somevar="test1"
-  anothervar="${somevar}"
-  numbervar=123
