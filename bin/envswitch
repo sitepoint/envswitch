@@ -68,7 +68,7 @@ function init()
 	        fi
 	    fi
 	}
-	
+
 	envrunning()
 	{
 		if [ -n "\${ENVSWITCH_PROFILE}" ]
