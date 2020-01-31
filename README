@@ -44,6 +44,23 @@ Usage:
   which can be called any time just by typing the name. The shell
   prompt should be updated to reflect the loaded profile.
 
+  envswitch -s
+
+  Show all loaded environment variables (effectively printing the
+  loaded profile to standard output).
+
+  envswitch -e
+
+  The same as above, except environment variables will be printed with
+  "export " prefixed to each one, making it convenient to export some
+  or all environment variables quickly for use on a different machine
+  that does not have envswitch installed or configured.
+
+  envswitch -h
+
+  Shows a summary of the above arguments.
+
   envreset
 
-  Clears all environment variables from the shell.
+  Clears all environment variables from the shell and unloads the
+  current profile.
