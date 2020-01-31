@@ -34,8 +34,8 @@ Profile configuration:
   numbervar=123
 
   Note the name of the configuration file (minus the .conf extension)
-  should not match an existing existing shell function. If in doubt,
-  check the output of `declare -F`.
+  should not match the name of an existing shell function. If in
+  doubt, check the output of `declare -F`.
 
 Usage:
   envswitch -l
