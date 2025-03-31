@@ -24,10 +24,15 @@ shopt -s nullglob
 
 function export_environment()
 {
+	replacement_prefix='export '
+	if [ "${show_env}" -eq 1 ]
+	then
+		replacement_prefix=" ${replacement_prefix}"
+	fi
 	if [ -n "${ENVSWITCH_PROFILE}" ]
 	then
-		sed -e 's/^\([^#]\+\)/export \1/g' \
-			"${config_dir}/${ENVSWITCH_PROFILE}.conf"
+		< "${config_dir}/${ENVSWITCH_PROFILE}.conf" \
+			sed -e 's/^\([^#]\+\)/'"${replacement_prefix}"'\1/g'
 	else
 		echo "No environment loaded."
 		exit 1
@@ -45,6 +50,8 @@ function print_help()
 	-s      show loaded environment variables
 	-e      show loaded environment variables (export mode)
 	-h      show this help message
+	
+	If both -e and -s are given, a single space is prefixed to export commands.
 	EOF
 }
 
@@ -169,7 +176,7 @@ do
 	esac
 done
 
-shift $(( OPTIND - 1))
+shift $(( OPTIND - 1 ))
 
 score=$(( export_opt + help_opt + init_opt + env_opt + \
 	show_env + init_opt_nops1 ))
@@ -178,7 +185,12 @@ then
 	echo "${0}: required option missing"
 	print_help
 	exit 1
-elif [ ${score} -gt 1 ]
+elif [ ${score} -gt 1 ] &&
+	{
+		[ "${score}" -ne 2 ] ||
+			[ "${export_opt}" -ne 1 ] ||
+			[ "${show_env}" -ne 1 ]
+	}
 then
 	echo "${0}: multiple options selected"
 	print_help
