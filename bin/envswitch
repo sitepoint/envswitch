@@ -24,15 +24,26 @@ shopt -s nullglob
 
 function export_environment()
 {
-	replacement_prefix='export '
-	if [ "${show_env}" -eq 1 ]
+	prefix=''
+	if [ "${show_env}" -eq 1 ] && [ "${export_opt}" -eq 1 ]
 	then
-		replacement_prefix=" ${replacement_prefix}"
+		prefix=" ${prefix}"
+	fi
+	if [ "${export_opt}" -eq 1 ]
+	then
+		prefix="${prefix}export "
 	fi
 	if [ -n "${ENVSWITCH_PROFILE}" ]
 	then
-		< "${config_dir}/${ENVSWITCH_PROFILE}.conf" \
-			sed -e 's/^\([^#]\+\)/'"${replacement_prefix}"'\1/g'
+		if [ "${comment_opt}" -eq 1 ]
+		then
+			< "${config_dir}/${ENVSWITCH_PROFILE}.conf" \
+				sed -e 's/^\([^#]\+\)/'"${prefix}"'\1/g' \
+					-e '/^\(#.*\)\?$/d'
+		else
+			< "${config_dir}/${ENVSWITCH_PROFILE}.conf" \
+				sed -e 's/^\([^#]\+\)/'"${prefix}"'\1/g'
+		fi
 	else
 		echo "No environment loaded."
 		exit 1
@@ -49,6 +60,7 @@ function print_help()
 	-l      list available environments
 	-s      show loaded environment variables
 	-e      show loaded environment variables (export mode)
+	-c      optional argument for -s or -e to strip comments and empty lines
 	-h      show this help message
 	
 	If both -e and -s are given, a single space is prefixed to export commands.
@@ -127,7 +139,13 @@ function show_environment()
 {
 	if [ -n "${ENVSWITCH_PROFILE}" ]
 	then
-		cat "${config_dir}/${ENVSWITCH_PROFILE}.conf"
+		if [ "${comment_opt}" -eq 1 ]
+		then
+			< "${config_dir}/${ENVSWITCH_PROFILE}.conf" \
+				sed -e '/^\(#.*\)\?$/d'
+		else
+			cat "${config_dir}/${ENVSWITCH_PROFILE}.conf"
+		fi
 	else
 		echo "No environment loaded."
 		exit 1
@@ -140,6 +158,7 @@ declare -i init_opt=0
 declare -i init_opt_nops1=0
 declare -i env_opt=0
 declare -i show_env=0
+declare -i comment_opt=0
 declare -i score=0
 
 if [ ! -d "${config_dir}" ]
@@ -148,9 +167,12 @@ then
 	mkdir -m 0700 "${config_dir}"
 fi
 
-while getopts "ehiIls" option
+while getopts "cehiIls" option
 do
 	case ${option} in
+		c )
+			comment_opt=1
+			;;
 		e )
 			export_opt=1
 			;;
@@ -193,6 +215,15 @@ elif [ ${score} -gt 1 ] &&
 	}
 then
 	echo "${0}: multiple options selected"
+	print_help
+	exit 1
+elif [ "${comment_opt}" -eq 1 ] &&
+	{
+		[ "${export_opt}" -ne 1 ] &&
+			[ "${show_env}" -ne 1 ]
+	}
+then
+	echo "${0}: -c is only valid with -e or -s"
 	print_help
 	exit 1
 else
