@@ -62,6 +62,7 @@ extension. eg.
 .. code-block:: console
 
   somevar="test1"
+
   # This is a comment.
   anothervar="${somevar}"
   numbervar=123
@@ -109,6 +110,7 @@ output like so:
 .. code-block:: console
 
   somevar="test1"
+
   # This is a comment.
   anothervar="${somevar}"
   numbervar=123
@@ -126,7 +128,24 @@ installed or configured. eg.
 .. code-block:: console
 
   export somevar="test1"
+
   # This is a comment.
+  export anothervar="${somevar}"
+  export numbervar=123
+
+Note that if ``-e and -s`` are used together, `` export`` will be
+prefixed to each variable (note the leading space). This can be used
+in conjunction with setting `HISTCONTROL` to ``ignorespace`` or
+``ignoreboth`` to prevent variables from being saved to the shell
+history. See `info bash -n 'Bash Variables' HISTCONTROL` for details.
+
+It is also possible to "clean" the output of ``-s`` or ``-e`` of empty
+lines and comment lines by adding the ``-c`` flag. For example,
+instead of the above output, ``envswitch -ec`` might produce:
+
+.. code-block:: console
+
+  export somevar="test1"
   export anothervar="${somevar}"
   export numbervar=123
 
